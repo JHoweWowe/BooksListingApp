@@ -33,6 +33,28 @@ public final class QueryUtils {
 
     }
 
+    /**
+     * Query the GoogleBooks API dataset and return a list of {@link GoogleBooks} objects.
+     */
+    public static List<GoogleBooks> fetchGoogleBooksData(String requestUrl) {
+        // Create URL object
+        URL url = createURL(requestUrl);
+
+        // Perform HTTP request to the URL and receive a JSON response back
+        String jsonResponse = null;
+        try {
+            jsonResponse = makeHttpRequest(url);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Problem making the HTTP request.", e);
+        }
+
+        // Extract relevant fields from the JSON response and create a list of {@link Earthquake}s
+        List<GoogleBooks> earthquakes = extractFeaturefromJson(jsonResponse);
+
+        // Return the list of {@link Earthquake}s
+        return earthquakes;
+    }
+
     //Creating a new URL object from the given URL
     private static URL createURL (String stringUrl) {
         URL url = null;

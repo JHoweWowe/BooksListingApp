@@ -17,9 +17,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <Button
+        android:id="@+id/find_button"
+        android:text="FIND"
+        android:layout_alignParentRight="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <ProgressBar
         android:layout_centerHorizontal="true"
         android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/empty_list"
+        android:textSize="20sp"
+        android:layout_centerInParent="true"
+        android:text="No books match your search query"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <ListView

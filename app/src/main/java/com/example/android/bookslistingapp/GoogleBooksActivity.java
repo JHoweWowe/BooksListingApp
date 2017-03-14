@@ -3,6 +3,9 @@ package com.example.android.bookslistingapp;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -13,9 +16,12 @@ public class GoogleBooksActivity extends AppCompatActivity {
     private static final String LOG_TAG = GoogleBooks.class.getName();
 
     //Test URL for the Google Books API query (PLEASE MODIFY IT LATER)
-    private static final String googleBooks_url = "https://www.googleapis.com/books/v1/volumes?q=android&maxResults=1";
+    private String googleBooksAPI = "https://www.googleapis.com/books/v1/volumes?q=";
 
     private GoogleBooksAdapter mAdapter;
+
+    //String value of the text as a
+    private String googleBooksgetText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,10 +38,29 @@ public class GoogleBooksActivity extends AppCompatActivity {
         // so the list can be populated in the user interface
         googleBooksListView.setAdapter(mAdapter);
 
-        // Start the AsyncTask to fetch the earthquake data
-        GoogleBooksAsyncTask task = new GoogleBooksAsyncTask();
-        task.execute(googleBooks_url);
+        //Find the button so the user will be able to click on the button to find the search results
+        Button findButton = (Button) findViewById(R.id.find_button);
+        findButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                EditText editText = (EditText) findViewById(R.id.google_books_search);
+                googleBooksgetText = editText.getText().toString();
+
+                String toSearch = "";
+                if (googleBooksgetText.length() > 0) {
+                    googleBooksgetText = googleBooksgetText.replace(" ", "+");
+                    toSearch = googleBooksAPI + googleBooksgetText;
+                }
+                // Start the AsyncTask to fetch the earthquake data
+                GoogleBooksAsyncTask task = new GoogleBooksAsyncTask();
+                task.execute(toSearch);
+            }
+
+        });
+
     }
+
+
 
     /**
      * {@link AsyncTask} is used in the background thread (so it is then used in as an inner class)
@@ -62,7 +87,7 @@ public class GoogleBooksActivity extends AppCompatActivity {
             if (urls.length < 1 || urls[0] == null) {
                 return null;
             }
-            List<GoogleBooks> result = QueryUtils.extractFeaturefromJson(urls[0]);
+            List<GoogleBooks> result = QueryUtils.fetchGoogleBooksData(urls[0]);
             return result;
         }
 
