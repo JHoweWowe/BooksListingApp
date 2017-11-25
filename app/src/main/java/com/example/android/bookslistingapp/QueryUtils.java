@@ -149,11 +149,17 @@ public final class QueryUtils {
                 JSONObject volumeInfo = currentGoogleBook.getJSONObject("volumeInfo");
 
                 String title = volumeInfo.getString("title");
-                JSONArray authors = volumeInfo.getJSONArray("authors");
-                String author = authors.getString(0);
-
-                GoogleBooks googleBooks = new GoogleBooks(title,author);
-                googleBooksArrayList.add(googleBooks);
+                if(volumeInfo.has("authors")){
+                    JSONArray authors = volumeInfo.getJSONArray("authors");
+                    String author = authors.getString(0);
+                    GoogleBooks googleBooks = new GoogleBooks(title,author);
+                    googleBooksArrayList.add(googleBooks);
+                }
+                else {
+                    String author = "No author indicated";
+                    GoogleBooks googleBooks = new GoogleBooks(title,author);
+                    googleBooksArrayList.add(googleBooks);
+                }
             }
         }
         catch (JSONException e){

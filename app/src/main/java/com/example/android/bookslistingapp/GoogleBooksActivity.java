@@ -1,5 +1,8 @@
 package com.example.android.bookslistingapp;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -7,6 +10,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,13 +28,21 @@ public class GoogleBooksActivity extends AppCompatActivity {
     //String value of the text as a
     private String googleBooksgetText;
 
+    //Empty TextView
+    private TextView emptyTextView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.google_books_activity);
 
+        final TextView emptyTextView = (TextView) findViewById(R.id.empty_list);
+        emptyTextView.setVisibility(View.INVISIBLE);
+
         // Find a reference to the {@link ListView} in the layout
         ListView googleBooksListView = (ListView) findViewById(R.id.list);
+
+        googleBooksListView.setEmptyView(emptyTextView);
 
         // Create a new adapter that takes an empty list of earthquakes as input
         mAdapter = new GoogleBooksAdapter(this, new ArrayList<GoogleBooks>());
@@ -43,21 +56,50 @@ public class GoogleBooksActivity extends AppCompatActivity {
         findButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                EditText editText = (EditText) findViewById(R.id.google_books_search);
-                googleBooksgetText = editText.getText().toString();
+                ProgressBar progressBar = (ProgressBar) findViewById(R.id.search_progress_bar);
+                progressBar.setVisibility(View.VISIBLE);
 
-                String toSearch = "";
-                if (googleBooksgetText.length() > 0) {
-                    googleBooksgetText = googleBooksgetText.replace(" ", "+");
-                    toSearch = googleBooksAPI + googleBooksgetText;
+                /*
+                ** Check Internet connection before making the search
+                 */
+                // Check state of network connectivity by referencing the ConnectivityManager
+                ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                // Get details on the currently active default data network
+                NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+
+                // If there is a network connection, fetch data
+                if (networkInfo != null && networkInfo.isConnected()) {
+                    EditText editText = (EditText) findViewById(R.id.google_books_search);
+                    googleBooksgetText = editText.getText().toString();
+
+                    String toSearch = "";
+                    if (googleBooksgetText.length() > 0) {
+                        googleBooksgetText = googleBooksgetText.replace(" ", "+");
+                        toSearch = googleBooksAPI + googleBooksgetText;
+                    }
+                    // Start the AsyncTask to fetch the earthquake data
+                    GoogleBooksAsyncTask task = new GoogleBooksAsyncTask();
+                    task.execute(toSearch);
                 }
-                // Start the AsyncTask to fetch the earthquake data
-                GoogleBooksAsyncTask task = new GoogleBooksAsyncTask();
-                task.execute(toSearch);
+                if ((networkInfo == null) || !((networkInfo.isConnected()))) {
+                    // If cannot connect to Internet
+                    // First, hide loading indicator so error message will be visible
+                    View loadingIndicator = findViewById(R.id.search_progress_bar);
+                    loadingIndicator.setVisibility(View.GONE);
+
+                    // Start the AsyncTask to fetch the earthquake data
+                    GoogleBooksAsyncTask task = new GoogleBooksAsyncTask();
+                    task.execute("Problem connection");
+
+                    // Update empty state with no connection error message
+                    emptyTextView.setText("No Internet Connection");
+                }
+                else {
+                    emptyTextView.setText("No books match your search query");
+                }
             }
-
         });
-
     }
 
 
@@ -94,6 +136,9 @@ public class GoogleBooksActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(List<GoogleBooks> data) {
             mAdapter.clear();
+
+            ProgressBar progressBar = (ProgressBar) findViewById(R.id.search_progress_bar);
+            progressBar.setVisibility(View.GONE);
 
             if ((data != null) && (!data.isEmpty())) {
                 mAdapter.addAll(data);
